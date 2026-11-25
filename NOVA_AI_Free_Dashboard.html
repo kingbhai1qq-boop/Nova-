@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#06131c">
+<title>NOVA AI</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 25%,#10394a,#06131c 55%,#02080d);color:#dffcff;font-family:system-ui,Arial,sans-serif}
+main{max-width:520px;margin:auto;padding:22px 18px 40px}.top{display:flex;justify-content:space-between;align-items:center}.brand{font-size:28px;letter-spacing:6px;font-weight:850;color:#8ffaff;text-shadow:0 0 18px #18d9ee}.status{font-size:12px;border:1px solid #087f89;padding:8px 12px;border-radius:30px;color:#66f3dd}
+.sub{text-align:center;letter-spacing:4px;color:#7caebb;font-size:11px;margin:25px 0 5px}
+.orbwrap{height:260px;display:grid;place-items:center}.orb{height:175px;width:175px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d8ffff,#38e5ed 18%,#087c9a 53%,#031a2a 78%);box-shadow:0 0 22px #00eaff,0 0 70px #007b9b,inset 0 0 22px #baffff;animation:pulse 3s infinite}
+@keyframes pulse{50%{transform:scale(1.05);filter:hue-rotate(12deg)}}
+.greet{text-align:center;color:#9cc6d0;margin:0 0 24px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.tile,.panel{border:1px solid #116477;background:#071c28cc;border-radius:18px;padding:17px;color:#dffcff}.tile{min-height:100px;text-align:left}.tile b{display:block;color:#83f5ff;letter-spacing:2px;margin-bottom:8px}.tile small{color:#83aeb9}.panel{margin-top:15px}.panel h3{margin:0 0 12px;color:#8ffaff;letter-spacing:2px;font-size:15px}
+textarea,input,select{width:100%;border:1px solid #126477;background:#020c13;color:#eaffff;border-radius:12px;padding:13px;font:inherit;margin:5px 0}
+button{border:1px solid #16cddd;background:#087d8d;color:white;border-radius:12px;padding:12px 15px;font-weight:700;margin:5px 5px 5px 0}
+button.secondary{background:#061923;color:#bffaff}.note{color:#89b2be;font-size:12px;line-height:1.5}.saved{white-space:pre-wrap;font-size:14px;color:#c9f7f7}
+a{color:#73efff}footer{text-align:center;color:#658e9b;font-size:11px;margin-top:20px}
+</style></head>
+<body><main>
+<div class="top"><div class="brand">NOVA AI</div><div class="status">● SYSTEM READY</div></div>
+<div class="sub">YOUR PERSONAL AI INTERFACE</div>
+<div class="orbwrap"><div class="orb"></div></div>
+<p class="greet" id="greet">नमस्ते! मैं NOVA हूँ। नीचे से शुरू करें।</p>
+<div class="grid">
+<button class="tile" onclick="document.getElementById('memory').scrollIntoView({behavior:'smooth'})"><b>◇ MEMORY</b><small>अपनी notes सेव करें</small></button>
+<button class="tile" onclick="openAI()"><b>● CHAT</b><small>ChatGPT में असली AI से बात करें</small></button>
+<button class="tile" onclick="listen()"><b>◌ VOICE</b><small>बोलकर सवाल लिखवाएँ</small></button>
+<button class="tile" onclick="document.getElementById('settings').scrollIntoView({behavior:'smooth'})"><b>⚙ SETTINGS</b><small>आवाज और भाषा</small></button>
+</div>
+<section class="panel" id="voice"><h3>VOICE INPUT</h3>
+<textarea id="heard" rows="3" placeholder="माइक दबाकर बोलें या यहाँ लिखें..."></textarea>
+<button onclick="listen()">🎙 बोलें</button><button class="secondary" onclick="copyQuestion()">कॉपी करें</button>
+<p class="note" id="voiceStatus">आपकी आवाज़ टेक्स्ट में बदलेगी। फिर उसे ChatGPT में भेजने के लिए कॉपी करें।</p>
+</section>
+<section class="panel" id="memory"><h3>MEMORY VAULT</h3>
+<textarea id="memo" rows="3" placeholder="यहाँ अपनी note लिखें..."></textarea>
+<button onclick="saveMemo()">Save Memory</button><button class="secondary" onclick="showMemo()">Show Saved</button><div class="saved" id="saved">अभी कोई note नहीं है।</div>
+<p class="note">Notes इसी browser के local storage में सेव होती हैं। Browser data हटाने पर मिट सकती हैं।</p></section>
+<section class="panel" id="settings"><h3>SETTINGS</h3>
+<label class="note">बोलकर जवाब सुनने की आवाज़ (फोन में उपलब्ध आवाज़ों पर निर्भर)</label>
+<select id="voiceSelect"></select>
+<button onclick="speakTest()">आवाज टेस्ट करें</button><button class="secondary" onclick="openAI()">Open ChatGPT</button>
+<p class="note">यह आवाज़ NOVA के अपने संदेश पढ़ती है। ChatGPT के जवाब उसकी अपनी Voice Settings से सुनें।</p></section>
+<section class="panel"><h3>REAL AI CHAT</h3>
+<p class="note">Free तरीका: नीचे बटन दबाने पर ChatGPT खुलेगा। वहाँ अपना सवाल लिखें या Voice Mode इस्तेमाल करें। यह Dashboard सीधे ChatGPT के जवाब अपने अंदर नहीं ला सकता।</p>
+<button onclick="openAI()">Open ChatGPT ↗</button></section>
+<footer>NOVA AI • Free local dashboard demo</footer>
+</main>
+<script>
+function openAI(){window.open('https://chatgpt.com/','_blank');}
+function listen(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){document.getElementById('voiceStatus').textContent='इस Chrome/browser में speech recognition उपलब्ध नहीं है। Keyboard mic या ChatGPT Voice इस्तेमाल करें।';return;}
+ const r=new SR();r.lang='hi-IN';r.interimResults=false;r.maxAlternatives=1;
+ document.getElementById('voiceStatus').textContent='सुन रही हूँ... बोलिए।';
+ r.onresult=e=>{document.getElementById('heard').value=e.results[0][0].transcript;document.getElementById('voiceStatus').textContent='आवाज टेक्स्ट में बदल गई। अब कॉपी करके ChatGPT में भेजें।';};
+ r.onerror=e=>document.getElementById('voiceStatus').textContent='माइक/अनुमति की समस्या: '+e.error+'. Chrome में microphone permission जाँचें।';
+ r.start();
+}
+function copyQuestion(){const t=document.getElementById('heard').value;if(!t){alert('पहले बोलें या सवाल लिखें।');return;}navigator.clipboard.writeText(t).then(()=>alert('सवाल कॉपी हो गया। अब ChatGPT खोलकर paste करें।')).catch(()=>alert('टेक्स्ट select करके Copy करें।'));}
+function saveMemo(){const v=document.getElementById('memo').value.trim();if(!v)return;let a=JSON.parse(localStorage.getItem('novaNotes')||'[]');a.push(v);localStorage.setItem('novaNotes',JSON.stringify(a));document.getElementById('memo').value='';showMemo();}
+function showMemo(){let a=JSON.parse(localStorage.getItem('novaNotes')||'[]');document.getElementById('saved').textContent=a.length?a.map((x,i)=>(i+1)+'. '+x).join('\\n'):'अभी कोई note नहीं है।';}
+function loadVoices(){const s=document.getElementById('voiceSelect');s.innerHTML='';let vs=speechSynthesis.getVoices();vs.forEach((v,i)=>{let o=document.createElement('option');o.value=i;o.textContent=v.name+' ('+v.lang+')';s.appendChild(o);});let f=vs.findIndex(v=>/female|woman|zira|samantha|google.*हिंदी|heera/i.test(v.name));if(f>=0)s.value=f;}
+function speakTest(){let vs=speechSynthesis.getVoices(),v=vs[+document.getElementById('voiceSelect').value];let u=new SpeechSynthesisUtterance('नमस्ते, मैं नोवा हूँ। आपकी क्या मदद कर सकती हूँ?');u.lang='hi-IN';if(v)u.voice=v;speechSynthesis.cancel();speechSynthesis.speak(u);}
+if('speechSynthesis' in window){loadVoices();speechSynthesis.onvoiceschanged=loadVoices;}showMemo();
+</script></body></html>
